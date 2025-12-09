@@ -1,13 +1,13 @@
-MedBlock – Blockchain-Based Medical Record System
+🩺 MedBlock – Blockchain-Based Medical Record System
 
-MedBlock adalah aplikasi manajemen data medis berbasis blockchain yang dirancang untuk menjaga keamanan, integritas, dan transparansi informasi kesehatan. Dengan desain antarmuka modern berbasis JavaScript serta backend yang kuat, MedBlock menghubungkan pasien dan dokter dalam ekosistem digital yang aman, efisien, dan terdesentralisasi.
+MedBlock adalah aplikasi manajemen rekam medis berbasis blockchain yang dirancang untuk memberikan keamanan, integritas, dan transparansi pada data kesehatan. Dengan antarmuka modern berbasis JavaScript dan backend yang kuat, MedBlock menghubungkan pasien dan dokter dalam sistem yang terdesentralisasi, efisien, dan aman.
 
-Aplikasi ini memanfaatkan smart contract Solidity untuk memastikan setiap data medis tersimpan secara permanen, tidak dapat dimanipulasi, dan dapat ditelusuri seperti eksplorasi blockchain pada Ethereum.
+Aplikasi ini memanfaatkan smart contract Solidity untuk memastikan bahwa setiap data medis tercatat secara permanen, tidak dapat dimodifikasi, dan dapat ditelusuri seperti eksplorasi blockchain pada Ethereum.
 
 🚀 Fitur Utama
 🏠 Landing Page
 
-Halaman berdesain modern sebagai pintu masuk ke platform, menjelaskan fungsi dan manfaat MedBlock dalam ekosistem kesehatan digital.
+Menampilkan overview aplikasi dengan tampilan modern serta pengenalan terhadap konsep MedBlock dan manfaatnya.
 
 🩺 Pencatatan Data Pasien (Dokter)
 
@@ -17,43 +17,42 @@ Mencatat data medis pasien
 
 Memperbarui informasi kesehatan
 
-Mengirimkan data ke blockchain melalui smart contract
+Mengirim data ke blockchain melalui smart contract
 
-Melihat riwayat medis pasien dalam format yang aman & terstruktur
+Melihat riwayat medis pasien secara aman dan terstruktur
 
 🔗 Explorer Blockchain Data Medis
 
-Halaman mirip blockchain explorer (seperti Etherscan) untuk:
+Halaman mirip blockchain explorer seperti Etherscan untuk:
 
-Melihat transaksi blockchain
+Menelusuri transaksi
 
-Memeriksa hash data medis
+Melihat hash dari data medis
 
-Menelusuri blok, alamat, dan catatan on-chain
+Mengamati blok dan aktivitas on-chain
 
 👥 Dua Jenis Pengguna
 
-Pasien: melihat rekam medis mereka secara aman
+Pasien: melihat rekam medis yang aman dan tervalidasi
 
-Dokter: menginput dan mengelola data medis
-Semua interaksi dilindungi oleh smart contract berbasis Ethereum/Polygon atau testnet.
+Dokter: menginput, mengelola, dan memperbarui rekam medis
 
 🧩 Teknologi yang Digunakan
 Frontend
 
-JavaScript modern (React.js / Next.js / Vue.js)
+React.js / Next.js / Vue.js
 
 TailwindCSS / Material UI
 
-Web3Modal / MetaMask Integration
+Web3Modal & MetaMask Integration
 
 Backend
 
 Node.js (Express / NestJS)
 
-Ethers.js untuk komunikasi dengan blockchain
+Ethers.js
 
-MongoDB / PostgreSQL (opsional untuk data off-chain)
+MongoDB / PostgreSQL (opsional)
 
 Blockchain
 
@@ -66,66 +65,66 @@ Ethereum Testnet (Sepolia / Polygon Mumbai)
 🏗️ Struktur Proyek
 medblock/
 │
-├── frontend/           # UI modern (React/Next.js)
+├── frontend/                # UI Modern (React/Next.js)
 │   ├── pages/
 │   ├── components/
 │   └── styles/
 │
-├── backend/            # Node.js API server
+├── backend/                 # Node.js API Server
 │   ├── src/
 │   └── routes/
 │
-├── contracts/          # Smart contract Solidity
+├── contracts/               # Smart Contract Solidity
 │   ├── MedBlock.sol
 │   └── scripts/
 │
-├── test/               # Pengujian smart contract
+├── test/                    # Smart Contract Tests
 │
 └── README.md
 
-📦 Cara Instalasi & Menjalankan Project
+📦 Instalasi & Menjalankan Project
 1. Clone Repository
 git clone https://github.com/username/medblock.git
 cd medblock
 
-2. Instal Dependency
+2. Install Dependencies
 
-Frontend:
+Frontend
 
 cd frontend
 npm install
 
 
-Backend:
+Backend
 
 cd backend
 npm install
 
 
-Contracts:
+Contracts
 
 cd contracts
 npm install
 
-3. Jalankan Local Blockchain (Hardhat)
+3. Menjalankan Local Blockchain (Hardhat)
 npx hardhat node
 
 4. Deploy Smart Contract
 npx hardhat run scripts/deploy.js --network localhost
 
-5. Jalankan Backend
+5. Menjalankan Backend
 npm run dev
 
-6. Jalankan Frontend
+6. Menjalankan Frontend
 npm run dev
 
 🔒 Keamanan
 
-Data medis tersimpan on-chain menggunakan hash untuk menjaga privasi
+Data medis tidak disimpan secara mentah, hanya hash-nya yang disimpan on-chain.
 
-Menggunakan wallet signature authentication untuk memastikan validitas pengguna
+Validasi pengguna menggunakan wallet signature authentication.
 
-Smart contract memastikan data tidak dapat diubah atau dihapus
+Smart contract memastikan data bersifat immutable (tidak bisa diubah/hapus).
 
 🗺️ Roadmap
 
@@ -135,4 +134,4 @@ Smart contract memastikan data tidak dapat diubah atau dihapus
 
  Integrasi IPFS untuk penyimpanan file medis
 
- Pengembangan Mobile App (React Native)
+ Pengembangan aplikasi mobile (React Native)
