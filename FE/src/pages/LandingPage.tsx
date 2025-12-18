@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Shield, Lock, Users, TrendingUp, ChevronRight, Zap, Database, Eye } from 'lucide-react';
+import { useWallet } from '../context/WalletContext';
 
 export default function LandingPage() {
+  const { userRole } = useWallet();
   const features = [
     {
       icon: Shield,
@@ -58,20 +60,50 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Link
-              to="/patient-records"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-semibold transition-all duration-200 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50"
-            >
-              <span>For Doctors</span>
-              <ChevronRight className="w-5 h-5" />
-            </Link>
-            <Link
-              to="/explorer"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold transition-all duration-200 border border-slate-600"
-            >
-              <span>Explore Records</span>
-              <ChevronRight className="w-5 h-5" />
-            </Link>
+            
+            {/* BUTTON 1: Doctor Logic */}
+            {userRole === 'doctor' ? (
+                <Link
+                  to="/patient-records"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-semibold transition-all duration-200 shadow-lg shadow-blue-500/30"
+                >
+                  <span>Doctor Dashboard</span>
+                  <ChevronRight className="w-5 h-5" />
+                </Link>
+            ) : userRole === 'patient' ? (
+                /* Patient doesn't need to see Doctor button */
+                null 
+            ) : (
+                /* Guest sees Login */
+                <Link 
+                  to="/login" 
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-semibold transition-all duration-200 shadow-lg shadow-blue-500/30"
+                >
+                    <span>Doctor Login</span>
+                    <ChevronRight className="w-5 h-5" />
+                </Link>
+            )}
+
+            {/* BUTTON 2: Patient Logic */}
+            {userRole === 'patient' ? (
+                <Link
+                  to="/explorer"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold transition-all duration-200 border border-slate-600"
+                >
+                  <span>My Records</span>
+                  <ChevronRight className="w-5 h-5" />
+                </Link>
+            ) : userRole === 'doctor' ? (
+                 null
+            ) : (
+                <Link 
+                  to="/login" 
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold transition-all duration-200 border border-slate-600"
+                >
+                    <span>Patient Login</span>
+                    <ChevronRight className="w-5 h-5" />
+                </Link>
+            )}
           </div>
 
           <div className="grid grid-cols-3 gap-4 sm:gap-8 text-center">
