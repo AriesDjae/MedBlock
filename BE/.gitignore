@@ -1,5 +1,11 @@
 # Ignore service account
 config/firebase.json
 
+# Env
+.env
+
 # Logs
 logs/
+
+# Go build output
+bin/

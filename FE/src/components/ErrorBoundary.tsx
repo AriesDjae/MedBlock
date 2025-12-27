@@ -1,59 +1,30 @@
-import React, { ReactNode, ErrorInfo } from 'react';
-import { AlertCircle } from 'lucide-react';
+import React, { Component, type ReactNode } from "react";
 
-interface Props {
-  children: ReactNode;
-}
+type Props = { children: ReactNode };
+type State = { hasError: boolean };
 
-interface State {
-  hasError: boolean;
-  error: Error | null;
-}
+export class ErrorBoundary extends Component<Props, State> {
+  state: State = { hasError: false };
 
-export class ErrorBoundary extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      hasError: false,
-      error: null,
-    };
+  static getDerivedStateFromError(): State {
+    return { hasError: true };
   }
 
-  static getDerivedStateFromError(error: Error): State {
-    return {
-      hasError: true,
-      error,
-    };
-  }
-
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
+  componentDidCatch(error: unknown, info: unknown) {
+    console.error("ErrorBoundary caught:", error, info);
   }
 
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4">
-          <div className="max-w-md text-center">
-            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h1 className="text-3xl font-bold text-white mb-2">Something went wrong</h1>
-            <p className="text-gray-300 mb-8">
-              {this.state.error?.message || 'An unexpected error occurred'}
-            </p>
-            <button
-              onClick={() => {
-                this.setState({ hasError: false, error: null });
-                window.location.href = '/';
-              }}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
-            >
-              Go to Home
-            </button>
+        <div className="min-h-screen flex items-center justify-center text-white">
+          <div className="p-6 rounded-xl bg-white/10">
+            <h1 className="text-2xl font-bold">Terjadi error!!</h1>
+            <p className="text-white/80">Cek Console untuk detail.</p>
           </div>
         </div>
       );
     }
-
     return this.props.children;
   }
 }
