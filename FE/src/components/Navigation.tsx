@@ -73,9 +73,14 @@ export default function Navigation() {
                     </button>
                 </div>
             ) : (
-                <Link to="/login" className="ml-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-                    Login
+              <div className="flex items-center gap-2 ml-4">
+                <Link to="/register" className="px-3 py-2 text-sm text-gray-200 hover:text-white hover:bg-slate-800 rounded-md">
+                  Register
                 </Link>
+                <Link to="/login" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                  Login
+                </Link>
+              </div>
             )}
           </div>
 
@@ -109,20 +114,29 @@ export default function Navigation() {
               )
             ))}
              {userRole ? (
-                <button 
-                    onClick={() => { logout(); setIsOpen(false); }}
-                    className="w-full text-left px-4 py-2 rounded-lg text-red-400 hover:bg-red-500/10"
-                >
-                    Logout
-                </button>
+              <button 
+                onClick={() => { logout(); setIsOpen(false); }}
+                className="w-full text-left px-4 py-2 rounded-lg text-red-400 hover:bg-red-500/10"
+              >
+                Logout
+              </button>
             ) : (
-                <Link 
-                    to="/login"
-                    onClick={() => setIsOpen(false)} 
-                    className="block px-4 py-2 text-blue-400 hover:bg-slate-800"
+              <div>
+                <Link
+                  to="/register"
+                  onClick={() => setIsOpen(false)}
+                  className="block px-4 py-2 text-gray-200 hover:bg-slate-800"
                 >
-                    Login
+                  Register
                 </Link>
+                <Link 
+                  to="/login"
+                  onClick={() => setIsOpen(false)} 
+                  className="block px-4 py-2 text-blue-400 hover:bg-slate-800"
+                >
+                  Login
+                </Link>
+              </div>
             )}
           </div>
         )}

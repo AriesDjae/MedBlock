@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { getServices } from '../services/api';
 import { Search, Filter, ExternalLink, CheckCircle, Clock, XCircle } from 'lucide-react';
 
 interface BlockchainRecord {
@@ -17,6 +18,18 @@ export default function BlockchainExplorer() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [services, setServices] = useState<any>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await getServices();
+        setServices(res);
+      } catch (err) {
+        console.error('Failed to fetch services', err);
+      }
+    })();
+  }, []);
 
   const mockRecords: BlockchainRecord[] = [
     {
@@ -278,19 +291,19 @@ export default function BlockchainExplorer() {
         )}
 
         <div className="mt-8 p-6 rounded-xl bg-blue-500/10 border border-blue-500/20">
-          <h3 className="text-lg font-semibold text-white mb-3">About the Blockchain</h3>
+          <h3 className="text-lg font-semibold text-white mb-3">Backend Services</h3>
           <div className="grid md:grid-cols-3 gap-4 text-sm">
             <div>
-              <p className="text-gray-400 mb-1">Network</p>
-              <p className="text-blue-300 font-semibold">Ethereum Sepolia Testnet</p>
+              <p className="text-gray-400 mb-1">Ethereum Connected</p>
+              <p className="text-blue-300 font-semibold">{services ? (services.eth_connected ? 'Yes' : 'No') : 'Loading...'}</p>
             </div>
             <div>
-              <p className="text-gray-400 mb-1">Total Records</p>
-              <p className="text-blue-300 font-semibold">{mockRecords.length.toLocaleString()}+</p>
+              <p className="text-gray-400 mb-1">Firestore Config</p>
+              <p className="text-blue-300 font-semibold">{services ? (services.firebase_present ? 'Configured' : 'Not present') : 'Loading...'}</p>
             </div>
             <div>
-              <p className="text-gray-400 mb-1">Latest Block</p>
-              <p className="text-blue-300 font-semibold">{Math.max(...mockRecords.map(r => r.blockNumber)).toLocaleString()}</p>
+              <p className="text-gray-400 mb-1">In-Memory Records</p>
+              <p className="text-blue-300 font-semibold">{services ? services.in_memory_records : 'Loading...'}</p>
             </div>
           </div>
         </div>
@@ -298,3 +311,5 @@ export default function BlockchainExplorer() {
     </div>
   );
 }
+
+ 

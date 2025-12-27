@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Deny all client writes; backend service account will perform writes
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

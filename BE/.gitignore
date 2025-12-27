@@ -1,0 +1,5 @@
+# Ignore service account
+config/firebase.json
+
+# Logs
+logs/

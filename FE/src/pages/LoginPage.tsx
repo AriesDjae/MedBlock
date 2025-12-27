@@ -1,18 +1,21 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Wallet, Stethoscope, UserCircle, ArrowRight, Loader2, Shield } from 'lucide-react';
-import { useWallet } from '../context/WalletContext'; // 👈 IMPORT THE HOOK
+import { loginUser } from '../services/api';
+import { connectWallet } from '../utils/wallet';
+import { useWallet } from '../context/WalletContext';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   
   // 1. GET THE GLOBAL FUNCTIONS
-  const { connectWallet, login, walletAddress } = useWallet();
+  const { login } = useWallet();
 
   // Local state only for UI loading/errors
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<'doctor' | 'patient' | null>(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
   const handleLogin = async () => {
     if (!selectedRole) {
@@ -26,16 +29,25 @@ export default function LoginPage() {
     try {
         // Step 1: Connect Wallet (Trigger MetaMask)
         // We await this to ensure wallet is connected BEFORE we log them in
-        await connectWallet();
-        
+        // connect wallet and get signer + address
+        const { signer, address } = await connectWallet();
+        setWalletAddress(address);
+
+        // call backend login
+        const res = await loginUser(signer);
+        console.log('login response', res);
+        if (res && res.token) {
+          localStorage.setItem('token', res.token);
+        }
+
         // Step 2: Update Global State (This makes the Nav bar update!)
         login(selectedRole);
 
         // Step 3: Redirect
         if (selectedRole === 'doctor') {
-            navigate('/patient-records');
+          navigate('/patient-records');
         } else {
-            navigate('/explorer');
+          navigate('/explorer');
         }
     } catch (err) {
         console.error(err);

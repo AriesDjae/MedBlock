@@ -2,10 +2,11 @@ package config
 
 import (
 	"context"
-	"log"
 	"os"
 
 	"github.com/ethereum/go-ethereum/ethclient"
+
+	"be/utils"
 )
 
 var EthClient *ethclient.Client
@@ -13,11 +14,16 @@ var EthClient *ethclient.Client
 func InitBlockchain() {
 	rpc := os.Getenv("RPC_URL")
 
+	if rpc == "" {
+		utils.Logger.Warn("RPC_URL not set — skipping blockchain initialization. Set RPC_URL in BE/.env to enable Ethereum connection.")
+		return
+	}
+
 	client, err := ethclient.DialContext(context.Background(), rpc)
 	if err != nil {
-		log.Fatal("Blockchain connection failed:", err)
+		utils.Logger.WithField("error", err).Fatal("Blockchain connection failed")
 	}
 
 	EthClient = client
-	log.Println("✅ Connected to Ethereum")
+	utils.Logger.Info("✅ Connected to Ethereum")
 }

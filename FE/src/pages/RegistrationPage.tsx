@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { UserCircle, Upload, FileText, Calendar, User, Wallet, Loader2, Stethoscope, ArrowLeft, CheckCircle } from 'lucide-react';
-import { useWallet } from '../context/WalletContext';
+import { registerUser } from '../services/api';
+import { ethers } from 'ethers';
+import { connectWallet } from '../utils/wallet';
 
 export default function RegistrationPage() {
-    const {login} = useWallet();
+    const [signer, setSigner] = useState<any>(null);
   const navigate = useNavigate();
   
   // Tabs: 'patient' or 'doctor'
@@ -21,17 +23,14 @@ export default function RegistrationPage() {
 
   const [certificateFile, setCertificateFile] = useState<File | null>(null);
 
-  // 1. Helper to Connect Wallet
-  const connectWallet = async () => {
-    if (typeof (window as any).ethereum !== 'undefined') {
-      try {
-        const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
-        setWalletAddress(accounts[0]);
-      } catch (err) {
-        alert("Failed to connect wallet");
-      }
-    } else {
-      alert("Please install MetaMask");
+  // 1. Helper to Connect Wallet (use shared util)
+  const handleConnect = async () => {
+    try {
+      const res = await connectWallet();
+      setSigner(res.signer);
+      setWalletAddress(res.address);
+    } catch (err) {
+      alert(String(err));
     }
   };
 
@@ -39,7 +38,7 @@ export default function RegistrationPage() {
   const handleSubmit = async () => {
     // Auto-connect if not connected
     if (!walletAddress) {
-      await connectWallet();
+      await handleConnect();
       // In a real app we'd wait for state update, but for demo we proceed if user approves
       if (!(window as any).ethereum?.selectedAddress) return;
     }
@@ -49,21 +48,25 @@ export default function RegistrationPage() {
     try {
       // SIMULATE "BLOCKCHAIN" DELAY
       await new Promise(resolve => setTimeout(resolve, 2000));
+      if (!signer) {
+        await handleConnect();
+      }
+
+      if (!signer && !(window as any).ethereum) {
+        throw new Error('No signer available');
+      }
 
       if (activeTab === 'patient') {
-        console.log("Registering Patient:", { ...formData, wallet: walletAddress });
-        alert("Patient Account Created Successfully!");
-        login('patient');
-        navigate('/explorer'); // Navigate to Patient Dashboard
+        // call backend register
+        const effectiveSigner = signer || (await connectWallet()).signer;
+        const res = await registerUser(effectiveSigner, formData.fullName);
+        alert("Patient Account Created: " + JSON.stringify(res));
+        navigate('/explorer');
       } else {
-        // --- THE DOCTOR "GIMMICK" ---
-        // We pretend to upload the file and verify the wallet
-        console.log("Verifying Doctor Certificate...", certificateFile?.name);
-        
-        // Simulating a "Verification Success" immediately
-        alert("System Notice: Test Wallet Recognized. \n\nCertificate Auto-Verified. Welcome, Doctor.");
-        login('doctor');
-        navigate('/patient-records'); // Navigate to Doctor Dashboard
+        const effectiveSigner = signer || (await connectWallet()).signer;
+        const res = await registerUser(effectiveSigner, formData.fullName);
+        alert("Doctor Account Created: " + JSON.stringify(res));
+        navigate('/patient-records');
       }
     } catch (error) {
       alert("Registration failed");
@@ -138,7 +141,7 @@ export default function RegistrationPage() {
                        <CheckCircle className="w-4 h-4 text-green-400" />
                     </div>
                   ) : (
-                    <button onClick={connectWallet} className="text-sm text-blue-400 hover:underline">
+                    <button onClick={handleConnect} className="text-sm text-blue-400 hover:underline">
                       Click to Connect Wallet
                     </button>
                   )}
