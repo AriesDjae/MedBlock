@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -16,10 +17,20 @@ func RequestLogger() gin.HandlerFunc {
         path := c.Request.URL.Path
         clientIP := c.ClientIP()
 
+        // Log incoming request immediately
+        fmt.Printf("\n>>> INCOMING REQUEST: %s %s from %s\n", method, path, clientIP)
+        utils.Logger.WithFields(map[string]interface{}{
+            "method":   method,
+            "path":     path,
+            "client_ip": clientIP,
+        }).Info("http_request_incoming")
+
         c.Next()
 
         status := c.Writer.Status()
         duration := time.Since(start)
+        fmt.Printf("<<< RESPONSE: %s %s - Status: %d - Duration: %s\n", method, path, status, duration)
+        
         entry := utils.Logger.WithFields(map[string]interface{}{
             "method":   method,
             "path":     path,

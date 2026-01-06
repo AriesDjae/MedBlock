@@ -22,8 +22,8 @@ func CreateMedicalRecord(c *gin.Context) {
 		return
 	}
 
-	// store record in-memory for now and return hash
-	hash, err := services.SaveAndReturnHash(record)
+	// store record in-memory for now and return hash and ipfs hash
+	hash, ipfsHash, err := services.SaveAndReturnHash(record)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to store medical record",
@@ -34,6 +34,7 @@ func CreateMedicalRecord(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Medical record created",
 		"hash":    hash,
+		"ipfsHash": ipfsHash,
 	})
 }
 

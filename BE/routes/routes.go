@@ -13,6 +13,10 @@ func RegisterRoutes(r *gin.Engine) {
 	r.POST("/api/register", controllers.Register)
 	r.POST("/api/nonce", controllers.RequestNonce)
 	r.POST("/api/login", controllers.Login)
+	
+	// Test routes (public untuk debugging)
+	r.GET("/api/test/pinata", controllers.TestPinataCredentials)
+	r.POST("/api/test/ipfs-upload", controllers.TestIPFSUpload)
 
 	api := r.Group("/api")
 	api.Use(middlewares.AuthSignatureMiddleware())

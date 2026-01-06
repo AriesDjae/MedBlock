@@ -73,3 +73,41 @@ export async function loginUser(signer: JsonRpcSigner) {
 
   return res.data;
 }
+
+export async function uploadFileToIPFS(
+  file: File,
+  signer: JsonRpcSigner
+): Promise<{ ipfsHash: string }> {
+  try {
+    const message = "Medblock Authentication";
+    console.log("Signing message for IPFS upload...");
+    const signature = await signer.signMessage(message);
+    console.log("Signature created, preparing FormData...");
+
+    const formData = new FormData();
+    formData.append("file", file);
+    console.log("FormData created with file:", file.name, "size:", file.size);
+
+    // Jangan set Content-Type secara manual, biarkan axios handle boundary untuk multipart/form-data
+    console.log("Sending request to:", `${API_URL}/ipfs/upload`);
+    const res = await axios.post(`${API_URL}/ipfs/upload`, formData, {
+      headers: {
+        "X-Message": message,
+        "X-Signature": signature,
+      },
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+    });
+
+    console.log("Upload response received:", res.data);
+    return res.data;
+  } catch (error: any) {
+    console.error("Upload error details:", {
+      message: error?.message,
+      response: error?.response?.data,
+      status: error?.response?.status,
+      headers: error?.response?.headers,
+    });
+    throw error;
+  }
+}

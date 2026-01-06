@@ -34,12 +34,16 @@ func main() {
 		AllowHeaders:     []string{"Origin", "Content-Type", "X-Wallet-Address", "X-Message", "X-Signature"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
+		AllowAllOrigins:   false,
 	}))
 
 	// Request logging
 	r.Use(middlewares.RequestLogger())
 
 	routes.RegisterRoutes(r)
+
+	// IPFS routes (upload / fetch)
+	routes.RegisterIPFSRoutes(r)
 
 	port := utils.GetEnv("PORT", "8080")
 	utils.Logger.Infof("🚀 Backend running at :%s", port)

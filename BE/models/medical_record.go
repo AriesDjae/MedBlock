@@ -6,4 +6,5 @@ type MedicalRecord struct {
 	Diagnosis      string `json:"diagnosis"`
 	Treatment      string `json:"treatment"`
 	Timestamp      int64  `json:"timestamp"`
+	IpfsHash       string `json:"ipfs_hash,omitempty"`
 }
