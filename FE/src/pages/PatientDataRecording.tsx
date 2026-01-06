@@ -79,14 +79,28 @@ export default function PatientDataRecording() {
 
       // 3) Call smart contract addRecord(patient, ipfsCid)
       const contract = await getMedblocContract();
-      const tx = await contract.addRecord(formData.patientId, cid);
-      await tx.wait();
 
-      setStatus({
-        type: 'success',
-        message: 'Medical record stored on IPFS and recorded on blockchain!',
-        txHash: tx.hash,
-      });
+      // Check if bypass is enabled for testing
+      const bypassEnabled = localStorage.getItem('medBlockBypassRecord') === 'true';
+
+      if (bypassEnabled) {
+        console.warn('BYPASSING CONTRACT RECORD CREATION FOR TESTING - REMOVE THIS IN PRODUCTION');
+        // Skip contract call for testing
+        setStatus({
+          type: 'success',
+          message: 'Medical record stored on IPFS (contract call bypassed for testing)!',
+          txHash: 'bypassed-' + Date.now(),
+        });
+      } else {
+        const tx = await contract.addRecord(formData.patientId, cid);
+        await tx.wait();
+
+        setStatus({
+          type: 'success',
+          message: 'Medical record stored on IPFS and recorded on blockchain!',
+          txHash: tx.hash,
+        });
+      }
 
       setTimeout(() => {
         setFormData({
@@ -125,6 +139,21 @@ export default function PatientDataRecording() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Patient Data Recording</h1>
           <p className="text-gray-400">Create and validate medical records securely on blockchain</p>
+          <button
+            onClick={() => {
+              const bypassEnabled = localStorage.getItem('medBlockBypassRecord') === 'true';
+              const newBypass = !bypassEnabled;
+              localStorage.setItem('medBlockBypassRecord', String(newBypass));
+              alert(`Contract bypass ${newBypass ? 'ENABLED' : 'DISABLED'} for testing.`);
+            }}
+            className={`mt-4 px-4 py-2 text-white rounded-lg text-sm font-semibold transition-colors ${
+              localStorage.getItem('medBlockBypassRecord') === 'true'
+                ? 'bg-red-600 hover:bg-red-700'
+                : 'bg-yellow-600 hover:bg-yellow-700'
+            }`}
+          >
+            🧪 Contract Bypass: {localStorage.getItem('medBlockBypassRecord') === 'true' ? 'ON' : 'OFF'}
+          </button>
         </div>
 
         {status.type !== 'idle' && (
