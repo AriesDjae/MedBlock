@@ -7,6 +7,9 @@ import PatientDataRecording from './pages/PatientDataRecording';
 import BlockchainExplorer from './pages/BlockchainExplorer';
 import LoginPage from './pages/LoginPage';
 import RegistrationPage from './pages/RegistrationPage';
+import PatientConsentPage from './pages/Patient/PatientConsentPage';
+import ContractTestPage from './pages/ContractTestPage';
+import RecordExplorer from './pages/Doctor/RecordExplorer';
 
 function App() {
   return (
@@ -20,7 +23,10 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegistrationPage />} />
               <Route path="/patient-records" element={<PatientDataRecording />} />
+              <Route path="/doctor-records" element={<RecordExplorer />} />
+              <Route path="/consent" element={<PatientConsentPage />} />
               <Route path="/explorer" element={<BlockchainExplorer />} />
+              <Route path="/test-contract" element={<ContractTestPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>

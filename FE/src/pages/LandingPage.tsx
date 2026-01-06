@@ -86,6 +86,7 @@ export default function LandingPage() {
 
             {/* BUTTON 2: Patient Logic */}
             {userRole === 'patient' ? (
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Link
                   to="/explorer"
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold transition-all duration-200 border border-slate-600"
@@ -93,16 +94,24 @@ export default function LandingPage() {
                   <span>My Records</span>
                   <ChevronRight className="w-5 h-5" />
                 </Link>
-            ) : userRole === 'doctor' ? (
-                 null
-            ) : (
-                <Link 
-                  to="/login" 
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold transition-all duration-200 border border-slate-600"
+                <Link
+                  to="/consent"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-slate-800 hover:bg-slate-700 text-blue-200 rounded-lg font-semibold transition-all duration-200 border border-blue-500/40"
                 >
-                    <span>Patient Login</span>
-                    <ChevronRight className="w-5 h-5" />
+                  <span>Manage Consent</span>
+                  <ChevronRight className="w-5 h-5" />
                 </Link>
+              </div>
+            ) : userRole === 'doctor' ? (
+              null
+            ) : (
+              <Link
+                to="/login"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold transition-all duration-200 border border-slate-600"
+              >
+                <span>Patient Login</span>
+                <ChevronRight className="w-5 h-5" />
+              </Link>
             )}
           </div>
 

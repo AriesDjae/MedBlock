@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Zap } from 'lucide-react';
+import { Menu, X, Zap, Code } from 'lucide-react';
 import { useWallet } from '../context/WalletContext'; // Import the hook
 
 export default function Navigation() {
@@ -12,15 +12,29 @@ export default function Navigation() {
 
   const isActive = (path: string) => location.pathname === path;
 
+  // Developer mode: allow viewing all pages regardless of role (for testing)
+  const [devMode, setDevMode] = useState(() => {
+    return localStorage.getItem('medBlockDevMode') === 'true';
+  });
+
   // Define links based on Role
   const navLinks = [
     { path: '/', label: 'Home', icon: '🏠', show: true },
     
-    // Show Records ONLY if Doctor
-    { path: '/patient-records', label: 'Doctor Dashboard', icon: '📋', show: userRole === 'doctor' },
+    // Show Records if Doctor OR in dev mode
+    { path: '/patient-records', label: 'Create Record', icon: '📋', show: userRole === 'doctor' || devMode },
     
-    // Show Explorer ONLY if Patient (Or both if you prefer)
-    { path: '/explorer', label: 'My Records', icon: '🔍', show: userRole === 'patient' },
+    // Show Record Explorer if Doctor OR in dev mode
+    { path: '/doctor-records', label: 'View Records', icon: '🔍', show: userRole === 'doctor' || devMode },
+    
+    // Show Explorer if Patient OR in dev mode
+    { path: '/explorer', label: 'My Records', icon: '📊', show: userRole === 'patient' || devMode },
+    
+    // Patient consent / access control - show if Patient OR in dev mode
+    { path: '/consent', label: 'Consent', icon: '✅', show: userRole === 'patient' || devMode },
+    
+    // Test page - always show
+    { path: '/test-contract', label: 'Test Contract', icon: '🧪', show: true },
   ];
 
   return (
@@ -60,7 +74,23 @@ export default function Navigation() {
 
             {/* LOGIN / LOGOUT BUTTON */}
             {userRole ? (
-                <div className="flex items-center gap-4 ml-4">
+                <div className="flex items-center gap-2 ml-4">
+                    {/* Developer Mode Toggle */}
+                    <button
+                        onClick={() => {
+                            const newMode = !devMode;
+                            setDevMode(newMode);
+                            localStorage.setItem('medBlockDevMode', String(newMode));
+                        }}
+                        className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                            devMode
+                                ? 'bg-yellow-500/20 border border-yellow-500/50 text-yellow-400'
+                                : 'bg-slate-800 border border-slate-600 text-gray-400 hover:bg-slate-700'
+                        }`}
+                        title="Developer Mode: View all pages regardless of role"
+                    >
+                        <Code className="w-4 h-4" />
+                    </button>
                     {/* Optional: Show small wallet address */}
                     <span className="text-xs font-mono text-gray-500 hidden lg:block">
                         {walletAddress?.slice(0,6)}...{walletAddress?.slice(-4)}
