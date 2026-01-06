@@ -8,21 +8,60 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"path/filepath"
+	"regexp"
+	"strings"
 	"time"
 
 	"be/utils"
 )
 
+// sanitizeFilename membersihkan filename dari karakter yang tidak valid untuk Pinata
+func sanitizeFilename(filename string) string {
+	// Ambil hanya nama file tanpa path
+	baseName := filepath.Base(filename)
+	
+	// Hapus karakter tidak valid: < > : " / \ | ? *
+	reg := regexp.MustCompile(`[<>:"/\\|?*\x00-\x1f]`)
+	sanitized := reg.ReplaceAllString(baseName, "_")
+	
+	// Hapus spasi di awal/akhir dan ganti multiple underscore dengan single
+	sanitized = strings.TrimSpace(sanitized)
+	sanitized = regexp.MustCompile(`_{2,}`).ReplaceAllString(sanitized, "_")
+	
+	// Jika kosong setelah sanitize, gunakan default
+	if sanitized == "" || sanitized == "." || sanitized == ".." {
+		sanitized = "document"
+	}
+	
+	// Pastikan ada extension
+	if !strings.Contains(sanitized, ".") {
+		// Coba ambil extension dari filename asli
+		ext := filepath.Ext(filename)
+		if ext != "" {
+			sanitized += ext
+		} else {
+			sanitized += ".bin"
+		}
+	}
+	
+	return sanitized
+}
+
 func UploadToPinata(filename string, data []byte) (string, error) {
+	// Sanitize filename untuk Pinata (hapus karakter tidak valid)
+	sanitizedFilename := sanitizeFilename(filename)
+	
 	utils.Logger.WithFields(map[string]interface{}{
-		"filename": filename,
-		"size":     len(data),
+		"filename":         filename,
+		"sanitized_filename": sanitizedFilename,
+		"size":             len(data),
 	}).Info("pinata: starting upload to Pinata")
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	part, err := writer.CreateFormFile("file", filename)
+	part, err := writer.CreateFormFile("file", sanitizedFilename)
 	if err != nil {
 		utils.Logger.WithField("error", err).Error("pinata: failed create form file")
 		return "", errors.New("pinata: failed to create form file: " + err.Error())

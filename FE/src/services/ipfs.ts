@@ -1,30 +1,35 @@
-export async function uploadJsonToIpfs(data: any) {
-  const token = import.meta.env.VITE_WEB3_STORAGE_TOKEN as string | undefined;
+/**
+ * IPFS Upload Service
+ *
+ * SEMUA upload IPFS HARUS menggunakan backend Pinata.
+ * JANGAN gunakan Web3 Storage atau service IPFS lain.
+ *
+ * Backend endpoint: POST /api/ipfs/upload
+ * Backend akan mengupload ke Pinata dan mengembalikan IPFS hash.
+ */
 
-  if (!token) {
-    throw new Error(
-      'VITE_WEB3_STORAGE_TOKEN is not set. Please add it to your .env file to enable IPFS uploads.'
-    );
-  }
+import { uploadFileToIPFS } from "./api";
+import { JsonRpcSigner } from "ethers";
 
-  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+/**
+ * Upload JSON data to IPFS via backend Pinata
+ *
+ * NOTE: Ini menggunakan backend Pinata (tidak langsung ke Pinata dari frontend)
+ *
+ * @param data - JSON data to upload
+ * @param signer - Ethers signer for authentication
+ * @returns IPFS hash (CID)
+ */
+export async function uploadJsonToIpfs(
+  data: any,
+  signer: JsonRpcSigner
+): Promise<string> {
+  // Convert JSON to Blob, then to File
+  const jsonString = JSON.stringify(data);
+  const blob = new Blob([jsonString], { type: "application/json" });
+  const file = new File([blob], "data.json", { type: "application/json" });
 
-  const res = await fetch('https://api.web3.storage/upload', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: blob,
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`IPFS upload failed: ${text}`);
-  }
-
-  const json = await res.json();
-  // web3.storage returns { cid: "..." }
-  return json.cid as string;
+  // Use backend Pinata upload service (via api.ts)
+  const result = await uploadFileToIPFS(file, signer);
+  return result.ipfsHash;
 }
-
-

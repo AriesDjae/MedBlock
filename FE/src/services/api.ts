@@ -74,6 +74,17 @@ export async function loginUser(signer: JsonRpcSigner) {
   return res.data;
 }
 
+/**
+ * Upload file to IPFS via backend Pinata
+ * 
+ * IMPORTANT: Semua IPFS upload HARUS melalui backend ini.
+ * Backend akan mengupload ke Pinata dan mengembalikan IPFS hash.
+ * JANGAN gunakan service IPFS lain seperti Web3 Storage.
+ * 
+ * @param file - File to upload
+ * @param signer - Ethers signer for authentication
+ * @returns Object dengan ipfsHash
+ */
 export async function uploadFileToIPFS(
   file: File,
   signer: JsonRpcSigner
@@ -89,7 +100,8 @@ export async function uploadFileToIPFS(
     console.log("FormData created with file:", file.name, "size:", file.size);
 
     // Jangan set Content-Type secara manual, biarkan axios handle boundary untuk multipart/form-data
-    console.log("Sending request to:", `${API_URL}/ipfs/upload`);
+    // Backend endpoint: POST /api/ipfs/upload (akan upload ke Pinata)
+    console.log("Sending request to backend:", `${API_URL}/ipfs/upload`);
     const res = await axios.post(`${API_URL}/ipfs/upload`, formData, {
       headers: {
         "X-Message": message,
