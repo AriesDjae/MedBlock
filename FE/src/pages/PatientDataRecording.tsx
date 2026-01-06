@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { FileUp, Send, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { uploadJsonToIpfs } from '../services/ipfs';
+import { getMedblocContract } from '../services/medbloc';
 
 type RecordType = 'consultation' | 'diagnosis' | 'prescription' | 'lab_result';
 
@@ -62,20 +64,28 @@ export default function PatientDataRecording() {
       return;
     }
 
-    setStatus({ type: 'loading', message: 'Processing and securing your record...' });
+    setStatus({ type: 'loading', message: 'Uploading to IPFS and writing to blockchain...' });
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // 1) Prepare payload to store off-chain
+      const payload = {
+        ...formData,
+        uploadedFiles,
+        createdAt: new Date().toISOString(),
+      };
 
-      const mockTxHash = `0x${Array(64)
-        .fill(0)
-        .map(() => Math.floor(Math.random() * 16).toString(16))
-        .join('')}`;
+      // 2) Upload JSON to IPFS
+      const cid = await uploadJsonToIpfs(payload);
+
+      // 3) Call smart contract addRecord(patient, ipfsCid)
+      const contract = await getMedblocContract();
+      const tx = await contract.addRecord(formData.patientId, cid);
+      await tx.wait();
 
       setStatus({
         type: 'success',
-        message: 'Medical record securely recorded on blockchain!',
-        txHash: mockTxHash,
+        message: 'Medical record stored on IPFS and recorded on blockchain!',
+        txHash: tx.hash,
       });
 
       setTimeout(() => {
@@ -92,10 +102,12 @@ export default function PatientDataRecording() {
         setUploadedFiles([]);
         setStatus({ type: 'idle' });
       }, 3000);
-    } catch (error) {
+    } catch (error: any) {
       setStatus({
         type: 'error',
-        message: 'Failed to record data. Please try again.',
+        message:
+          error?.message ||
+          'Failed to upload or record data. Check your wallet, IPFS token, and try again.',
       });
     }
   };

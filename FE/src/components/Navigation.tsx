@@ -15,12 +15,15 @@ export default function Navigation() {
   // Define links based on Role
   const navLinks = [
     { path: '/', label: 'Home', icon: '🏠', show: true },
-    
+
     // Show Records ONLY if Doctor
     { path: '/patient-records', label: 'Doctor Dashboard', icon: '📋', show: userRole === 'doctor' },
-    
+
     // Show Explorer ONLY if Patient (Or both if you prefer)
     { path: '/explorer', label: 'My Records', icon: '🔍', show: userRole === 'patient' },
+
+    // Patient consent / access control
+    { path: '/consent', label: 'Consent', icon: '✅', show: userRole === 'patient' },
   ];
 
   return (

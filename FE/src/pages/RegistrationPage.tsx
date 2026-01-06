@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { UserCircle, Upload, FileText, Calendar, User, Wallet, Loader2, Stethoscope, ArrowLeft, CheckCircle } from 'lucide-react';
 import { registerUser } from '../services/api';
-import { ethers } from 'ethers';
 import { connectWallet } from '../utils/wallet';
+import { useWallet } from '../context/WalletContext';
+import { getMedblocContract } from '../services/medbloc';
 
 export default function RegistrationPage() {
-    const [signer, setSigner] = useState<any>(null);
+  const [signer, setSigner] = useState<any>(null);
   const navigate = useNavigate();
+  const { login } = useWallet();
   
   // Tabs: 'patient' or 'doctor'
   const [activeTab, setActiveTab] = useState<'patient' | 'doctor'>('patient');
@@ -56,20 +58,29 @@ export default function RegistrationPage() {
         throw new Error('No signer available');
       }
 
+      // call backend register
+      const effectiveSigner = signer || (await connectWallet()).signer;
+      const res = await registerUser(effectiveSigner, formData.fullName);
+
+      // also register on-chain via smart contract
+      const contract = await getMedblocContract();
+
       if (activeTab === 'patient') {
-        // call backend register
-        const effectiveSigner = signer || (await connectWallet()).signer;
-        const res = await registerUser(effectiveSigner, formData.fullName);
+        const tx = await contract.registerPatient();
+        await tx.wait();
         alert("Patient Account Created: " + JSON.stringify(res));
+        // Mark user as logged in (updates nav + landing page)
+        login('patient');
         navigate('/explorer');
       } else {
-        const effectiveSigner = signer || (await connectWallet()).signer;
-        const res = await registerUser(effectiveSigner, formData.fullName);
+        const tx = await contract.registerDoctor();
+        await tx.wait();
         alert("Doctor Account Created: " + JSON.stringify(res));
+        login('doctor');
         navigate('/patient-records');
       }
-    } catch (error) {
-      alert("Registration failed");
+    } catch (error: any) {
+      alert(error?.message || "Registration failed");
     } finally {
       setIsLoading(false);
     }
