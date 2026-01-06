@@ -54,13 +54,19 @@ export async function registerUser(signer: JsonRpcSigner, name?: string) {
   return res.data;
 }
 
+export async function requestNonce(wallet: string) {
+  const res = await axios.post(`${API_URL.replace('/api','')}/api/nonce`, { wallet });
+  return res.data;
+}
+
 export async function loginUser(signer: JsonRpcSigner) {
-  const message = "Medblock Authentication";
-  const signature = await signer.signMessage(message);
+  const address = await signer.getAddress();
+  const { nonce } = await requestNonce(address);
+  const signature = await signer.signMessage(nonce);
 
   const res = await axios.post(`${API_URL.replace('/api','')}/api/login`, {}, {
     headers: {
-      "X-Message": message,
+      "X-Message": nonce,
       "X-Signature": signature,
     },
   });
