@@ -12,6 +12,7 @@ import {
   Filter,
 } from 'lucide-react';
 import { getMedblocContract } from '../../services/medbloc';
+import { getSigner } from '../../services/web3';
 
 type ConsentStatus = 'pending' | 'approved' | 'denied';
 
@@ -89,11 +90,34 @@ export default function PatientConsentPage() {
     try {
       setLoadingId(request.id);
       const contract = await getMedblocContract();
+      
+      // Check if current user (patient) is registered
+      const signer = await getSigner();
+      const patientAddress = await signer.getAddress();
+      const isPatientRegistered = await contract.isPatient(patientAddress);
+      
+      if (!isPatientRegistered) {
+        setBanner({
+          type: 'error',
+          message: 'You must be registered as a patient in the contract first. Please register using the registration page.',
+        });
+        return;
+      }
 
+      // Check if doctor is registered before granting access
       if (decision === 'approved') {
+        const isDoctorRegistered = await contract.isDoctor(request.doctorAddress);
+        if (!isDoctorRegistered) {
+          setBanner({
+            type: 'error',
+            message: `Doctor address ${request.doctorAddress.slice(0, 6)}...${request.doctorAddress.slice(-4)} is not registered in the contract. Please ask them to register first using the registration page or test page.`,
+          });
+          return;
+        }
         const tx = await contract.grantAccess(request.doctorAddress);
         await tx.wait();
       } else {
+        // For revoke, we can still try even if doctor isn't registered (might have been revoked already)
         const tx = await contract.revokeAccess(request.doctorAddress);
         await tx.wait();
       }
@@ -110,15 +134,22 @@ export default function PatientConsentPage() {
             : 'On-chain access revoked. This doctor can no longer view your records.',
       });
     } catch (err: any) {
+      let errorMessage = err?.message || 'Failed to update access on-chain. Please check your wallet and try again.';
+      
+      // Provide more helpful error messages
+      if (errorMessage.includes('Not a doctor')) {
+        errorMessage = `The doctor address ${request.doctorAddress.slice(0, 6)}...${request.doctorAddress.slice(-4)} is not registered in the contract. They need to register as a doctor first.`;
+      } else if (errorMessage.includes('Only patient') || errorMessage.includes('Not a patient')) {
+        errorMessage = 'Only registered patients can grant access. Please register as a patient first using the registration page.';
+      }
+      
       setBanner({
         type: 'error',
-        message:
-          err?.message ||
-          'Failed to update access on-chain. Please check your wallet and try again.',
+        message: errorMessage,
       });
     } finally {
       setLoadingId(null);
-      setTimeout(() => setBanner({ type: 'idle' }), 4000);
+      setTimeout(() => setBanner({ type: 'idle' }), 5000);
     }
   };
 
