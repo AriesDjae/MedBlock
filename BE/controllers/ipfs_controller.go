@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -110,6 +111,68 @@ func UploadToIPFS(c *gin.Context) {
 		"ipfsHash": cipherData,
 		"message":  "File uploaded successfully to IPFS Pinata",
 		"filename": file.Filename,
+	})
+}
+
+// UploadJSONToIPFS uploads JSON data directly to IPFS via Pinata
+func UploadJSONToIPFS(c *gin.Context) {
+	utils.Logger.Info("========================================")
+	utils.Logger.Info("JSON TO IPFS UPLOAD ENDPOINT CALLED!")
+	utils.Logger.Info("========================================")
+
+	wallet := c.GetString("wallet_address")
+	utils.Logger.WithField("wallet", wallet).Info("ipfs: json upload request received from wallet")
+
+	var jsonData map[string]interface{}
+	if err := c.ShouldBindJSON(&jsonData); err != nil {
+		utils.Logger.WithField("error", err.Error()).Error("ipfs: json upload failed to bind JSON")
+		c.JSON(400, gin.H{
+			"error": "Invalid JSON data: " + err.Error(),
+		})
+		return
+	}
+
+	// Convert to JSON bytes
+	jsonBytes, err := json.Marshal(jsonData)
+	if err != nil {
+		utils.Logger.WithField("error", err.Error()).Error("ipfs: json marshal failed")
+		c.JSON(500, gin.H{"error": "Failed to marshal JSON: " + err.Error()})
+		return
+	}
+
+	filename := "medical_record.json"
+	utils.Logger.WithFields(map[string]interface{}{
+		"filename": filename,
+		"size":     len(jsonBytes),
+		"wallet":   wallet,
+	}).Info("ipfs: json data prepared, starting encryption and upload")
+
+	fmt.Println("Starting encryption and upload to Pinata...")
+	cipherData, err := services.EncryptAndUpload(jsonBytes, filename)
+	if err != nil {
+		fmt.Printf("ERROR: JSON Upload failed - %s\n", err.Error())
+		utils.Logger.WithFields(map[string]interface{}{
+			"error":  err.Error(),
+			"wallet": wallet,
+		}).Error("ipfs: json encrypt/upload failed")
+		c.JSON(500, gin.H{
+			"error":   "failed to upload JSON to IPFS: " + err.Error(),
+			"message": "Check Pinata credentials and network connection",
+		})
+		return
+	}
+
+	fmt.Printf("SUCCESS! IPFS Hash: %s\n", cipherData)
+	fmt.Println("========================================")
+	utils.Logger.WithFields(map[string]interface{}{
+		"ipfsHash": cipherData,
+		"wallet":   wallet,
+	}).Info("ipfs: json uploaded successfully to Pinata")
+
+	c.JSON(200, gin.H{
+		"ipfsHash": cipherData,
+		"message":  "JSON data uploaded successfully to IPFS Pinata",
+		"size":     len(jsonBytes),
 	})
 }
 

@@ -83,6 +83,27 @@ export default function PatientConsentPage() {
     [requests, filter]
   );
 
+  const checkRegistrationStatus = async () => {
+    try {
+      const signer = await getSigner();
+      const address = await signer.getAddress();
+      const contract = await getMedblocContract();
+      const isRegistered = await contract.isPatient(address);
+
+      setBanner({
+        type: 'success',
+        message: `Your address ${address} is ${isRegistered ? 'REGISTERED' : 'NOT REGISTERED'} as a patient in the contract.`,
+      });
+    } catch (err: any) {
+      setBanner({
+        type: 'error',
+        message: `Failed to check registration: ${err.message}`,
+      });
+    } finally {
+      setTimeout(() => setBanner({ type: 'idle' }), 5000);
+    }
+  };
+
   const handleDecision = async (
     request: ConsentRequest,
     decision: Extract<ConsentStatus, 'approved' | 'denied'>
@@ -94,25 +115,39 @@ export default function PatientConsentPage() {
       // Check if current user (patient) is registered
       const signer = await getSigner();
       const patientAddress = await signer.getAddress();
+      console.log('Checking patient registration for address:', patientAddress);
       const isPatientRegistered = await contract.isPatient(patientAddress);
-      
+      console.log('Patient registered in contract:', isPatientRegistered);
+
+      const bypassEnabled = localStorage.getItem('medBlockBypassConsent') === 'true';
+
       if (!isPatientRegistered) {
-        setBanner({
-          type: 'error',
-          message: 'You must be registered as a patient in the contract first. Please register using the registration page.',
-        });
-        return;
+        if (bypassEnabled) {
+          console.warn('BYPASSING PATIENT REGISTRATION CHECK FOR TESTING - REMOVE THIS IN PRODUCTION');
+        } else {
+          setBanner({
+            type: 'error',
+            message: `You must be registered as a patient in the contract first. Please register using the registration page. Your address: ${patientAddress}`,
+          });
+          return;
+        }
       }
 
       // Check if doctor is registered before granting access
       if (decision === 'approved') {
         const isDoctorRegistered = await contract.isDoctor(request.doctorAddress);
+        const bypassEnabled = localStorage.getItem('medBlockBypassConsent') === 'true';
+
         if (!isDoctorRegistered) {
-          setBanner({
-            type: 'error',
-            message: `Doctor address ${request.doctorAddress.slice(0, 6)}...${request.doctorAddress.slice(-4)} is not registered in the contract. Please ask them to register first using the registration page or test page.`,
-          });
-          return;
+          if (bypassEnabled) {
+            console.warn('BYPASSING DOCTOR REGISTRATION CHECK FOR TESTING - REMOVE THIS IN PRODUCTION');
+          } else {
+            setBanner({
+              type: 'error',
+              message: `Doctor address ${request.doctorAddress.slice(0, 6)}...${request.doctorAddress.slice(-4)} is not registered in the contract. Please ask them to register first using the registration page or test page.`,
+            });
+            return;
+          }
         }
         const tx = await contract.grantAccess(request.doctorAddress);
         await tx.wait();
@@ -141,6 +176,8 @@ export default function PatientConsentPage() {
         errorMessage = `The doctor address ${request.doctorAddress.slice(0, 6)}...${request.doctorAddress.slice(-4)} is not registered in the contract. They need to register as a doctor first.`;
       } else if (errorMessage.includes('Only patient') || errorMessage.includes('Not a patient')) {
         errorMessage = 'Only registered patients can grant access. Please register as a patient first using the registration page.';
+      } else if (errorMessage.includes('no access') || errorMessage.includes('No access') || errorMessage.includes('access denied')) {
+        errorMessage = 'Access control error: Make sure both you and the doctor are properly registered in the smart contract.';
       }
       
       setBanner({
@@ -168,6 +205,33 @@ export default function PatientConsentPage() {
             Review which doctors can access your medical records. Approve or deny new requests in
             one secure place.
           </p>
+          <div className="mt-4 flex gap-2">
+            <button
+              onClick={checkRegistrationStatus}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors"
+            >
+              🔍 Check My Registration Status
+            </button>
+            <button
+              onClick={() => {
+                const bypassEnabled = localStorage.getItem('medBlockBypassConsent') === 'true';
+                const newBypass = !bypassEnabled;
+                localStorage.setItem('medBlockBypassConsent', String(newBypass));
+                setBanner({
+                  type: 'success',
+                  message: `Registration bypass ${newBypass ? 'ENABLED' : 'DISABLED'} for testing.`,
+                });
+                setTimeout(() => setBanner({ type: 'idle' }), 3000);
+              }}
+              className={`px-4 py-2 text-white rounded-lg text-sm font-semibold transition-colors ${
+                localStorage.getItem('medBlockBypassConsent') === 'true'
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : 'bg-yellow-600 hover:bg-yellow-700'
+              }`}
+            >
+              🧪 Bypass: {localStorage.getItem('medBlockBypassConsent') === 'true' ? 'ON' : 'OFF'}
+            </button>
+          </div>
         </header>
 
         {banner.type !== 'idle' && (

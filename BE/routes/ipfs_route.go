@@ -11,6 +11,7 @@ func RegisterIPFSRoutes(r *gin.Engine) {
 	ipfs.Use(middlewares.AuthSignatureMiddleware())
 	{
 		ipfs.POST("/upload", controllers.UploadToIPFS)
+		ipfs.POST("/upload-json", controllers.UploadJSONToIPFS)
 		ipfs.GET("/:hash", controllers.GetFromIPFS)
 	}
 }

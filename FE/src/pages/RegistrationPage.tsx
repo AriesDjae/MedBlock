@@ -64,18 +64,25 @@ export default function RegistrationPage() {
 
       // also register on-chain via smart contract
       const contract = await getMedblocContract();
+      console.log('Registering in contract...');
 
       if (activeTab === 'patient') {
+        console.log('Calling registerPatient()...');
         const tx = await contract.registerPatient();
+        console.log('Transaction sent:', tx.hash);
         await tx.wait();
-        alert("Patient Account Created: " + JSON.stringify(res));
+        console.log('Transaction confirmed!');
+        alert("Patient Account Created: " + JSON.stringify(res) + " TX: " + tx.hash);
         // Mark user as logged in (updates nav + landing page)
         login('patient');
         navigate('/explorer');
       } else {
+        console.log('Calling registerDoctor()...');
         const tx = await contract.registerDoctor();
+        console.log('Transaction sent:', tx.hash);
         await tx.wait();
-        alert("Doctor Account Created: " + JSON.stringify(res));
+        console.log('Transaction confirmed!');
+        alert("Doctor Account Created: " + JSON.stringify(res) + " TX: " + tx.hash);
         login('doctor');
         navigate('/patient-records');
       }
